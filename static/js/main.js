@@ -50,8 +50,42 @@ function loadplot(curr){
     xhr.send(result);
     xhr.onload = function(){
         data = xhr.response;
+        if (data['plot']=='true'){
+            if (document.getElementById('nop')){document.getElementById('nop').remove()};
+            let dvp = document.getElementById('plotVal');
+            let ifr = document.createElement('iframe');
+            dvp.appendChild(ifr);
+            ifr.src = "static/fig.html";
+            ifr.id = 'nop'
+            ifr.style.width="100%";
+            ifr.style.height="400px";
+            dvp.style.height=400;
+        }
+    }
+}
 
-        let dvp = document.getElementById('plotVal');
-        dvp.innerHTML = data['plot'];
+function ref(){
+    let elm = document.getElementById('selval[]');
+    //в этот массив будем отбирать выбранные значения
+    values =[elm.value];
+
+    //случай мульти-режима
+    if (elm.multiple) {
+    //перебираем массив опций
+    for (var i = 0; i < elm.options.length; i ++) {
+    //если опция выбрана - добавим её в массив
+        if (elm.options[i].selected) 
+        values.push(elm.options[i].value);
+    }
+    //случай одиночного выбора в select
+    } else {
+        values =[elm.value];
+    }
+     var jval = {}
+     for (x in values){
+        jval[x]=x;
+     }
+    if (jval!={}){
+        loadplot(jval);
     }
 }

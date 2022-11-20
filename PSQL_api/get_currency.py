@@ -98,4 +98,5 @@ def get_curr_rates(curr=[], period=None):
     fig.write_html(buffer)
     html_bytes = buffer.getvalue().encode()
 
-    return b64encode(html_bytes).decode()
+    #return buffer;
+    return fig

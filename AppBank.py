@@ -3,6 +3,10 @@
 
 import pickle, os, sys, json, time, hashlib;
 import compress_pickle as cpk
+import pandas as pd
+
+import plotly.express as px
+from dash import Dash, dcc, html
 
 from flask import Flask, session, request, redirect;
 from datetime import datetime;
@@ -102,11 +106,12 @@ def mainTraide():
     if not chk_auth_user(): return redirect('/login');
     style='<style>'+styleHeader+\
         '.mainDiv{overflow-x:auto; margin:auto; width:90%; padding: 2px; border: 3px solid transparent; border-top:ridge blue; border-bottom:ridge blue}'+\
-        '.plotTab{width:100%; padding:10px; border: 4px double blue; border-top: 4px outset blue; border-bottom: 4px inset blue}'+\
+        '.plotTab{width:100%; height:400px padding:10px; border: 4px double blue; border-top: 4px outset blue; border-bottom: 4px inset blue}'+\
         '.traideTab{width:100%; overflow-x: auto;  padding:10px; border: 4px double blue; border-top: 4px outset blue; border-bottom: 4px inset blue}'+\
         '.predTab{width:100%;  padding:10px}'+\
         '.tdPred{border: 2px solid;}'+\
         '.tdOnce{width: 100%}'+\
+        '.tdOnce1{width: 100%; height:400px}'+\
         '.tdTraid{width: 50%; overflow-x: auto;}'+\
         '.pressed-button {text-decoration: none;display: inline-block;padding: 5px 40px;margin: 10px 20px;border-radius: 30px;background-image: linear-gradient(45deg, #6ab1d7 0%, #33d9de 50%, #002878 100%);background-position: 100% 0;background-size: 200% 200%;font-family: "Montserrat", sans-serif;font-size: 14px;font-weight: 100;color: white;box-shadow: 0 16px 32px 0 rgba(0, 40, 120, .35);transition: .5s;}'+\
         '.pressed-button:hover {box-shadow: 0 0 0 0 rgba(0, 40, 120, 0);background-position: 0 0;}'+\
@@ -121,10 +126,19 @@ def mainTraide():
         '<div class="mainDiv">'+\
             '<table class="plotTab">'+\
                 '<tr>'+\
-                    '<td class="tdOnce"><div id="plotVal"></div></td>'+\
+                    '<td class="tdOnce1"><div id="plotVal"></div></td>'+\
                 '</tr>'+\
                 '<tr>'+\
-                    '<td class="tdOnce">График 1 управление</td>'+\
+                    '<td class="tdOnce">'+\
+                        '<select id="selval[]" size="2" multiple="multiple" class="pressed-button">'+\
+                            '<option value="2">USD</option>'+\
+                            '<option value="3">CNY</option>'+\
+                            '<option value="4">EUR</option>'+\
+                            '<option value="5">GBP</option>'+\
+                            '<option value="6">JPY</option>'+\
+                        '</select>'+\
+                        '<button class="pressed-button" onclick="ref()">Показать</button>'+\
+                    '</td>'+\
                 '</tr>'+\
             '</table>'+\
             '<table class="traideTab">'+\
@@ -172,29 +186,54 @@ def mainTraide():
 @app.route('/sellTs', methods=["POST"])
 def sellTs():
     if request.method=="POST":
+        tap = get_currency();
+        rap = {'USD':'RUBUSD',
+                'EUR':'RUBEUR',
+                'GBP':'RUBGBP',
+                'JPY':'RUBJPY',
+                'CNY':'RUBCNY'}
         lval = request.form['sellT'].split('|')
-        HM = request.form['hm']
-        t = buy_curr(user_id=session['id'], accfr_id=lval[1], accto_id=lval[2], value_from=0, value_to=0);
+        logger(str(lval));
+        logger('')
+        HM = float(request.form['hm']);
+        qw = float(tap['quotes'][rap[lval[0]]])
+
+        t = buy_curr(user_id=session['id'], accfr_id=lval[1], accto_id=lval[2], value_from=HM*qw, value_to=HM);
         if t: logger('Успешное продажа: ' + lval[0]+' '+str(HM));
-        else: logger('Отказ в продаже: ' + lval[0]+' '+str(HM));
+        else: logger('Отказ в продаже: ' + str(session['id']) +' '+lval[1]+' '+ lval[2]);
         return redirect('/');
 
 @app.route('/buyTs', methods=["POST"])
 def buyTs():
     if request.method=="POST":
+        tap = get_currency();
+        rap = {'USD':'RUBUSD',
+                'EUR':'RUBEUR',
+                'GBP':'RUBGBP',
+                'JPY':'RUBJPY',
+                'CNY':'RUBCNY'}
         lval = request.form['buyT'].split('|')
-        HM = request.form['hm']
-        t = buy_curr(user_id=session['id'], accfr_id=lval[2], accto_id=lval[1], value_from=0, value_to=0);
+        logger(str(lval));
+        logger('')
+        HM = float(request.form['hm']);
+        qw = float(tap['quotes'][rap[lval[0]]])
+
+        t = buy_curr(user_id=session['id'], accfr_id=lval[2], accto_id=lval[1], value_from=HM, value_to=HM*qw);
         if t: logger('Успешное покупка: ' + lval[0]+' '+str(HM));
-        else: logger('Отказ в покупке: ' + lval[0]+' '+str(HM));
+        else: logger('Отказ в покупке: ' + str(session['id']) +' '+lval[2]+' '+ lval[1]);
         return redirect('/');
 
 @app.route('/getplot', methods=["POST"])
 def getplot():
     if request.method=="POST":
-        content = request.json;\
+        content = request.json;
         logger(str(content.keys()))
-        fut = {'plot':get_curr_rates(curr=list(content.keys()))}
+
+        fig=get_curr_rates(curr=list(content.keys()))
+
+        fig.write_html("static/fig.html")
+
+        fut = {'plot':'true'}
         return json.dumps(fut);
 
 
@@ -399,9 +438,9 @@ def profile():
 def selldon():
     if request.method=="POST":
     
-        #s = out_money(user_id=session['user_id'], value=int(request.form['howmuch']));
-        #if s: logger('Выведены средства '+request.form['howmuch'])
-        #else: logger('Ошибка выведения средств '+request.form['howmuch'])
+        s = out_money(user_id=session['id'], value=int(request.form['howmuch']), accfr_id='1'); #, accfr_id=int(session['1'])
+        if s: logger('Выведены средства '+request.form['howmuch'])
+        else: logger('Ошибка выведения средств '+request.form['howmuch'])
 
         return redirect('/profile')
 
@@ -444,6 +483,7 @@ def getload():
             val = x[1]
             num = x[0]
             bal = x[3]
+            #session[val]=num
 
             data['acc'][val] = {}
             data['acc'][val]['sum']=bal;
