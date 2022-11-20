@@ -10,9 +10,8 @@ Files for app in Sovcombank Team Challenge 2022
 
 Сreate and activate virtual environment
 ```bash
-python3 -m venv venv-evraz
-echo "export PYTHONPATH=$PWD" >> venv-evraz/bin/activate
-source venv-evraz/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 Install dependencies
