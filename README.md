@@ -23,6 +23,8 @@ Run app file
 python AppBank.py
 ```
 
+Also need to configure database
+
 # ML-models
 
 Notebook for train final model `FinalSubmission.ipynb` in 'notebook' folder.
