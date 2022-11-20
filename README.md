@@ -25,6 +25,11 @@ python AppBank.py
 
 ## 4. Database configure
 
+### Launch postgres
+
+```
+cd postgres && docker-compose up
+```
 #### Получение курсов валют:
     API от api.apilayer.com
     
