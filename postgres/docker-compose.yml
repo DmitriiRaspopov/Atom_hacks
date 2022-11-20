@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  postgres:
+    image: postgres:15.1
+    environment:
+      POSTGRES_DB: "scb_db"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "userpass"
+    volumes:
+      - ./db_data/:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
