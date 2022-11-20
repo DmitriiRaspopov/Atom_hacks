@@ -18,12 +18,12 @@ Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
-Run app file
+## 3. Run app file
 ```bash
 python AppBank.py
 ```
 
-Also need to configure database
+## 4. Database configure
 
 #### Получение курсов валют:
     API от api.apilayer.com
