@@ -88,6 +88,8 @@ The preprocessed data for train ML-model is in 'data/preprocessed' folder.
 │
 ├── static             <- JS files for app front-end
 │   
+├── postgres           <- docker-compose file for launch postgres
+│   
 │
 ├── SYSTEMmark         <- System mark
 │   
